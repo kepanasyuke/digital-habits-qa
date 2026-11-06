@@ -1,0 +1,10 @@
+target/
+!.mvn/wrapper/maven-wrapper.properties
+.idea/
+*.iml
+.vscode/
+allure-report/
+allure-results/
+.allure/
+*.log
+.DS_Store

@@ -1,0 +1,43 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: habits-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/habits}
+    username: ${DB_USER:habits}
+    password: ${DB_PASSWORD:habits}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        max.block.ms: 5000
+
+app:
+  events:
+    enabled: ${APP_EVENTS_ENABLED:false}
+    topic: ${APP_EVENTS_TOPIC:habit-events}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    ru.digitalhabits: INFO
