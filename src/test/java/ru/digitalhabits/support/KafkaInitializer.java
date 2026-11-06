@@ -17,17 +17,17 @@ public class KafkaInitializer implements ApplicationContextInitializer<Configura
 
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
-        if (!Boolean.getBoolean("kafka.enabled")) {
-            log.info("Kafka отключена: сценарии с @kafka не запускаются");
-            return;
-        }
-        String brokers = start();
-        log.info("Встроенный Kafka-брокер поднят: {}", brokers);
+        if (Boolean.getBoolean("kafka.enabled")) {
+            String brokers = start();
+            log.info("Встроенный Kafka-брокер поднят: {}", brokers);
 
-        TestPropertySourceUtils.addInlinedPropertiesToEnvironment(applicationContext,
-                "spring.kafka.bootstrap-servers=" + brokers,
-                "app.events.enabled=true",
-                "app.events.topic=" + TOPIC);
+            TestPropertySourceUtils.addInlinedPropertiesToEnvironment(applicationContext,
+                    "spring.kafka.bootstrap-servers=" + brokers,
+                    "app.events.enabled=true",
+                    "app.events.topic=" + TOPIC);
+        } else {
+            log.info("Kafka отключена: сценарии с @kafka не запускаются");
+        }
     }
 
     private static synchronized String start() {

@@ -35,24 +35,24 @@ public class HabitEventPublisher {
     }
 
     public void checkinCreated(Habit habit, Checkin checkin) {
-        if (!enabled) {
-            log.debug("Публикация событий выключена, событие по чек-ину {} пропущено", checkin.getId());
-            return;
-        }
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("eventId", UUID.randomUUID().toString());
-        payload.put("eventType", "HABIT_CHECKIN_CREATED");
-        payload.put("habitId", habit.getId().toString());
-        payload.put("userId", habit.getUserId().toString());
-        payload.put("checkinDate", checkin.getCheckinDate().toString());
-        payload.put("occurredAt", Instant.now().toString());
+        if (enabled) {
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("eventId", UUID.randomUUID().toString());
+            payload.put("eventType", "HABIT_CHECKIN_CREATED");
+            payload.put("habitId", habit.getId().toString());
+            payload.put("userId", habit.getUserId().toString());
+            payload.put("checkinDate", checkin.getCheckinDate().toString());
+            payload.put("occurredAt", Instant.now().toString());
 
-        try {
-            String json = objectMapper.writeValueAsString(payload);
-            kafkaTemplate.send(topic, habit.getId().toString(), json);
-            log.info("Событие HABIT_CHECKIN_CREATED отправлено в топик {}: {}", topic, json);
-        } catch (Exception e) {
-            throw new IllegalStateException("Не удалось опубликовать событие чек-ина " + checkin.getId(), e);
+            try {
+                String json = objectMapper.writeValueAsString(payload);
+                kafkaTemplate.send(topic, habit.getId().toString(), json);
+                log.info("Событие HABIT_CHECKIN_CREATED отправлено в топик {}: {}", topic, json);
+            } catch (Exception e) {
+                throw new IllegalStateException("Не удалось опубликовать событие чек-ина " + checkin.getId(), e);
+            }
+        } else {
+            log.debug("Публикация событий выключена, событие по чек-ину {} пропущено", checkin.getId());
         }
     }
 }

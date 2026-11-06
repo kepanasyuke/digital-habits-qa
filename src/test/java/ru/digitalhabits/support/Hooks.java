@@ -29,10 +29,9 @@ public class Hooks {
     @After
     public void attachLastResponse(Scenario scenario) {
         Response response = apiClient.lastResponse();
-        if (response == null) {
-            return;
+        if (response != null) {
+            String details = response.getStatusLine() + System.lineSeparator() + response.getBody().asString();
+            Allure.addAttachment("Последний HTTP-ответ", "text/plain", details, "txt");
         }
-        String details = response.getStatusLine() + System.lineSeparator() + response.getBody().asString();
-        Allure.addAttachment("Последний HTTP-ответ", "text/plain", details, "txt");
     }
 }

@@ -42,21 +42,28 @@ public class KafkaVerifier {
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
         long deadline = System.currentTimeMillis() + 20_000;
+        Map<String, Object> found = null;
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(List.of(topic));
-            while (System.currentTimeMillis() < deadline) {
+            while (found == null && System.currentTimeMillis() < deadline) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
                 for (ConsumerRecord<String, String> record : records) {
                     Map<String, Object> event = parse(record.value());
                     if (habitId.equals(event.get("habitId")) && eventType.equals(event.get("eventType"))) {
-                        lastEvent = event;
-                        return event;
+                        found = event;
+                        break;
                     }
                 }
             }
         }
-        throw new AssertionError("Событие " + eventType + " по привычке " + habitId
-                + " не появилось в топике " + topic + " за 20 секунд");
+
+        if (found == null) {
+            throw new AssertionError("Событие " + eventType + " по привычке " + habitId
+                    + " не появилось в топике " + topic + " за 20 секунд");
+        }
+
+        lastEvent = found;
+        return found;
     }
 
     @SuppressWarnings("unchecked")
