@@ -1,5 +1,9 @@
 # digital-habits-qa
 
+![Пайплайн сценария: Gherkin → Java steps → REST API → PostgreSQL → Kafka → Allure → Jenkins](docs/assets/banner.gif)
+
+<sub>Анимированная версия пайплайна в браузере: [docs/pipeline.html](docs/pipeline.html)</sub>
+
 ## Простыми словами
 
 Это учебный проект по тестированию: есть сервис цифровых привычек, и к нему написаны автотесты так, как это делают в команде, — сценарии на понятном языке, проверки API, базы и событий, отчёты и запуск в CI.

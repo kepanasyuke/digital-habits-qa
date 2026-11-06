@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>digital-habits-qa — путь одного сценария</title>
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --bg-2: #121d38;
+    --panel: #141e36;
+    --panel-active: #1b2c4e;
+    --line: #283858;
+    --line-done: #355a66;
+    --text: #eaf3ff;
+    --muted: #9ab0d0;
+    --dim: #6e84a8;
+    --accent: #4ea1ff;
+    --accent-soft: rgba(78, 161, 255, 0.14);
+    --ok: #4ade80;
+    --ok-soft: rgba(34, 197, 94, 0.14);
+    --mono: "Cascadia Mono", "Consolas", "JetBrains Mono", monospace;
+    --cycle: 7s;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(900px 420px at 82% 4%, rgba(78, 161, 255, 0.16), transparent 70%),
+      linear-gradient(160deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    padding: 40px 20px 64px;
+  }
+
+  main { max-width: 1000px; margin: 0 auto; }
+
+  .hero { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 18px; justify-content: space-between; }
+  h1 { font-size: clamp(26px, 4vw, 40px); margin: 0 0 6px; letter-spacing: -0.5px; }
+  .sub { margin: 0; color: var(--muted); font-size: 17px; }
+  .tech { margin: 8px 0 0; color: var(--dim); font-size: 13px; letter-spacing: 0.2px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 8px 16px; border-radius: 999px;
+    border: 1px solid var(--ok); background: var(--ok-soft);
+    color: #d9fbe6; font-size: 13px; font-weight: 600; white-space: nowrap;
+  }
+  .badge .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  section { margin-top: 44px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--dim); margin: 0 0 18px; font-weight: 600; }
+
+  /* ---- пайплайн ---- */
+  .flow { position: relative; }
+  .track {
+    position: relative; height: 2px; margin: 0 4px 20px;
+    background: rgba(255, 255, 255, 0.12); border-radius: 2px; overflow: hidden;
+  }
+  .track::after {
+    content: ""; position: absolute; inset: 0; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), #bfdcff);
+    transform-origin: left; transform: scaleX(0);
+    animation: fill var(--cycle) linear infinite;
+  }
+  .packet {
+    position: absolute; top: 50%; left: 0; width: 10px; height: 10px; border-radius: 50%;
+    background: #bfdcff; box-shadow: 0 0 12px 3px rgba(78, 161, 255, 0.7);
+    transform: translate(-50%, -50%);
+    animation: travel var(--cycle) linear infinite;
+  }
+
+  .nodes { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(7, 1fr); }
+  .node {
+    position: relative; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--panel); padding: 12px 8px 10px; text-align: center;
+    animation: activate var(--cycle) ease-in-out infinite;
+    animation-delay: calc(var(--i) * (var(--cycle) / 7));
+  }
+  .node b { display: block; font-size: 13px; font-weight: 600; }
+  .node span { display: block; margin-top: 3px; font-size: 11px; color: var(--dim); font-family: var(--mono); }
+  .node .num {
+    position: absolute; top: 5px; right: 7px; font-size: 9px; color: var(--dim); font-family: var(--mono);
+  }
+
+  @keyframes activate {
+    0%      { border-color: var(--line); background: var(--panel); box-shadow: none; }
+    1%      { border-color: var(--accent); background: var(--panel-active); box-shadow: 0 0 0 4px var(--accent-soft), 0 0 26px rgba(78, 161, 255, 0.35); }
+    13%     { border-color: var(--accent); background: var(--panel-active); box-shadow: 0 0 0 4px var(--accent-soft), 0 0 26px rgba(78, 161, 255, 0.35); }
+    14.3%   { border-color: var(--accent); background: var(--panel-active); box-shadow: none; }
+    15%     { border-color: var(--line-done); background: var(--panel); box-shadow: none; }
+    100%    { border-color: var(--line); background: var(--panel); box-shadow: none; }
+  }
+
+  @keyframes travel {
+    from { left: 0; }
+    to   { left: 100%; }
+  }
+
+  @keyframes fill {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.35; transform: scale(0.8); }
+  }
+
+  /* ---- карточки проверок ---- */
+  .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card {
+    border: 1px solid var(--line); border-radius: 14px; background: rgba(20, 30, 54, 0.75);
+    padding: 18px 18px 16px; position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 2px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+    opacity: 0.7;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 14px; letter-spacing: 0.3px; }
+  .card p { margin: 0; color: var(--muted); font-size: 13px; }
+  .card code { font-family: var(--mono); font-size: 12px; color: #bfdcff; }
+
+  /* ---- терминал ---- */
+  .terminal {
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    background: #0b1222; box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9);
+  }
+  .terminal .bar {
+    display: flex; align-items: center; gap: 7px;
+    padding: 11px 14px; border-bottom: 1px solid var(--line); background: #101a2e;
+  }
+  .terminal .bar i { width: 10px; height: 10px; border-radius: 50%; background: #2b3a58; }
+  .terminal .bar i:nth-child(1) { background: #ff5f57; }
+  .terminal .bar i:nth-child(2) { background: #febc2e; }
+  .terminal .bar i:nth-child(3) { background: #28c840; }
+  .terminal .bar em { margin-left: 8px; font-style: normal; font-size: 12px; color: var(--dim); font-family: var(--mono); }
+
+  .terminal pre {
+    margin: 0; padding: 18px 20px 22px; font-family: var(--mono); font-size: 12.5px;
+    color: #cbd8ea; line-height: 1.85; white-space: pre-wrap; word-break: break-word;
+  }
+  .terminal .line { display: block; opacity: 0; animation: reveal 0.4s ease forwards; animation-delay: calc(var(--i) * 0.45s); }
+  .terminal .cmd { color: #bfdcff; }
+  .terminal .ok { color: var(--ok); }
+  .terminal .dim { color: var(--dim); }
+  .terminal .caret { display: inline-block; width: 7px; height: 14px; background: var(--accent); vertical-align: -2px; animation: blink 1s step-end infinite; }
+
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  footer {
+    margin-top: 44px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;
+    color: var(--dim); font-size: 13px;
+  }
+  footer a { color: #bfdcff; text-decoration: none; border-bottom: 1px solid rgba(191, 220, 255, 0.35); }
+  footer a:hover { color: #fff; }
+
+  @media (max-width: 720px) {
+    .nodes { grid-template-columns: repeat(2, 1fr); }
+    .node { animation: none; border-color: var(--line); }
+    .node:nth-child(odd) { border-color: var(--accent); background: var(--panel-active); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; }
+    .terminal .line { opacity: 1; }
+    .track::after { transform: scaleX(1); }
+    .packet { left: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div>
+      <h1>digital-habits-qa</h1>
+      <p class="sub">Учебный проект под вакансию Fullstack-тестировщик</p>
+      <p class="tech">Cucumber · Rest Assured · PostgreSQL · Kafka · Allure · Jenkins</p>
+    </div>
+    <div class="badge"><span class="dot"></span>25 / 25 сценариев</div>
+  </header>
+
+  <section class="flow" aria-label="Пайплайн одного сценария">
+    <h2>Путь одного сценария</h2>
+    <div class="track"><div class="packet"></div></div>
+    <ol class="nodes">
+      <li class="node" style="--i:0"><span class="num">01</span><b>Gherkin</b><span>.feature</span></li>
+      <li class="node" style="--i:1"><span class="num">02</span><b>Java steps</b><span>@Когда</span></li>
+      <li class="node" style="--i:2"><span class="num">03</span><b>REST API</b><span>Rest Assured</span></li>
+      <li class="node" style="--i:3"><span class="num">04</span><b>PostgreSQL</b><span>SQL-проверки</span></li>
+      <li class="node" style="--i:4"><span class="num">05</span><b>Kafka</b><span>habit-events</span></li>
+      <li class="node" style="--i:5"><span class="num">06</span><b>Allure</b><span>отчёт</span></li>
+      <li class="node" style="--i:6"><span class="num">07</span><b>Jenkins</b><span>CI/CD</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Что проверяется на каждом уровне</h2>
+    <div class="cards">
+      <article class="card">
+        <h3>Контракт API</h3>
+        <p>Rest Assured проверяет статус, тело и структуру ответа: <code>POST /habits/{id}/checkins</code>, <code>GET /habits/{id}/stats</code>.</p>
+      </article>
+      <article class="card">
+        <h3>Данные в PostgreSQL</h3>
+        <p>Прямые SQL-запросы подтверждают, что запись действительно легла в таблицу, уникальность даты соблюдена, а каскад удаления не оставил «висячих» строк.</p>
+      </article>
+      <article class="card">
+        <h3>Событие в Kafka</h3>
+        <p>После чек-ина в топик <code>habit-events</code> уходит <code>HABIT_CHECKIN_CREATED</code> с habitId, userId и датой.</p>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Как это выглядит в консоли</h2>
+    <div class="terminal">
+      <div class="bar"><i></i><i></i><i></i><em>mvnw test -Pall</em></div>
+      <pre><span class="line cmd" style="--i:0">$ ./mvnw test -Pall</span>
+<span class="line dim" style="--i:1">[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 2</span>
+<span class="line dim" style="--i:2">[INFO] Tests run: 2,  Failures: 0, Errors: 0, Skipped: 23</span>
+<span class="line ok"  style="--i:3">[INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0</span>
+<span class="line ok"  style="--i:4">[INFO] BUILD SUCCESS — Allure: target/allure-report/index.html</span>
+<span class="line dim" style="--i:5">$ <span class="caret"></span></span></pre>
+    </div>
+  </section>
+
+  <footer>
+    <span>Учебный стенд: API привычек, встроенные PostgreSQL и Kafka — без Docker.</span>
+    <span><a href="../README.md">README</a> · <a href="../Jenkinsfile">Jenkinsfile</a> · <a href="release-checklist.md">чек-лист релиза</a></span>
+  </footer>
+</main>
+</body>
+</html>
